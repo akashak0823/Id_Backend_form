@@ -34,7 +34,11 @@ export class EmployeesService {
         // Helper to upload single file
         const uploadSingle = async (key: string) => {
             if (files[key] && files[key][0]) {
-                const url = await this.cloudinaryService.uploadFile(files[key][0]);
+                const file = files[key][0];
+                if (file.size === 0) {
+                    return '';
+                }
+                const url = await this.cloudinaryService.uploadFile(file);
                 fileLinks[`${key}Url`] = url;
                 return url;
             }
@@ -54,8 +58,10 @@ export class EmployeesService {
         const eduCertUrls: string[] = [];
         if (files.educationalCertificates && files.educationalCertificates.length > 0) {
             for (const file of files.educationalCertificates) {
-                const url = await this.cloudinaryService.uploadFile(file);
-                eduCertUrls.push(url);
+                if (file.size > 0) {
+                    const url = await this.cloudinaryService.uploadFile(file);
+                    eduCertUrls.push(url);
+                }
             }
             fileLinks['educationalCertificatesUrl'] = eduCertUrls;
         }
