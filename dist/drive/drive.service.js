@@ -25,11 +25,33 @@ let DriveService = DriveService_1 = class DriveService {
     }
     async initializeDrive() {
         try {
-            const keyFile = this.configService.get('GOOGLE_APPLICATION_CREDENTIALS');
-            const auth = new googleapis_1.google.auth.GoogleAuth({
-                keyFile,
-                scopes: ['https://www.googleapis.com/auth/drive.file'],
-            });
+            let auth;
+            const clientEmail = this.configService.get('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+            const privateKey = this.configService.get('GOOGLE_PRIVATE_KEY');
+            if (clientEmail && privateKey) {
+                const credentials = {
+                    client_email: clientEmail,
+                    private_key: privateKey.replace(/\\n/g, '\n'),
+                };
+                auth = new googleapis_1.google.auth.GoogleAuth({
+                    credentials,
+                    scopes: ['https://www.googleapis.com/auth/drive.file'],
+                });
+                this.logger.log('Initialized Google Drive with Environment Variable credentials');
+            }
+            else {
+                const keyFile = this.configService.get('GOOGLE_APPLICATION_CREDENTIALS');
+                if (keyFile) {
+                    auth = new googleapis_1.google.auth.GoogleAuth({
+                        keyFile,
+                        scopes: ['https://www.googleapis.com/auth/drive.file'],
+                    });
+                    this.logger.log('Initialized Google Drive with keyFile path');
+                }
+            }
+            if (!auth) {
+                throw new Error('No Google Drive credentials found (Checked Env Vars and GOOGLE_APPLICATION_CREDENTIALS)');
+            }
             this.driveClient = googleapis_1.google.drive({ version: 'v3', auth });
             this.logger.log('Google Drive client initialized');
         }

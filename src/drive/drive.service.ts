@@ -35,6 +35,8 @@ export class DriveService {
                 // 2. Fallback to keyFile path (Best for Local Dev if using file)
                 const keyFile = this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
                 if (keyFile) {
+                    // Note: GoogleAuth reads the file internally, so we don't need to clone/require manually here
+                    // unless we were reading it ourselves.
                     auth = new google.auth.GoogleAuth({
                         keyFile,
                         scopes: ['https://www.googleapis.com/auth/drive.file'],

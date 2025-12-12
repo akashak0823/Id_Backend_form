@@ -26,20 +26,42 @@ let SheetsService = SheetsService_1 = class SheetsService {
     }
     async initializeSheets() {
         try {
-            const path = await import('path');
-            const keyFilePath = path.join(process.cwd(), 'service-account.json');
-            const credentials = require(keyFilePath);
-            if (credentials.private_key) {
-                credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+            let auth;
+            const clientEmail = this.configService.get('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+            const privateKey = this.configService.get('GOOGLE_PRIVATE_KEY');
+            if (clientEmail && privateKey) {
+                const credentials = {
+                    client_email: clientEmail,
+                    private_key: privateKey.replace(/\\n/g, '\n'),
+                };
+                auth = new googleapis_1.google.auth.GoogleAuth({
+                    credentials,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                });
+                this.logger.log('Loaded Google Sheets credentials from Environment Variables');
             }
-            const auth = new googleapis_1.google.auth.GoogleAuth({
-                credentials,
-                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-            });
+            else {
+                const path = await import('path');
+                const keyFilePath = path.join(process.cwd(), 'service-account.json');
+                const fs = await import('fs');
+                if (fs.existsSync(keyFilePath)) {
+                    auth = new googleapis_1.google.auth.GoogleAuth({
+                        keyFile: keyFilePath,
+                        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                    });
+                    this.logger.log('Loaded Google Sheets credentials from local service-account.json file');
+                }
+                else {
+                    this.logger.warn('service-account.json not found and Env Vars not set');
+                }
+            }
+            if (!auth) {
+                throw new Error('No valid Google Sheets credentials found');
+            }
             this.sheetsClient = googleapis_1.google.sheets({ version: 'v4', auth });
             this.spreadsheetId = this.configService.get('GOOGLE_SHEET_ID') || '';
             this.tabName = this.configService.get('GOOGLE_SHEET_TAB_NAME') || 'Employees';
-            this.logger.log('Google Sheets client initialized with explicit credentials');
+            this.logger.log('Google Sheets client initialized successfully');
         }
         catch (error) {
             this.logger.error('Failed to initialize Google Sheets client', error);

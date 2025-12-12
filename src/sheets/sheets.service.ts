@@ -15,51 +15,46 @@ export class SheetsService {
 
     private async initializeSheets() {
         try {
-            let credentials;
+            let auth;
 
             // 1. Try loading from Environment Variables (Best for Render/Cloud)
             const clientEmail = this.configService.get<string>('GOOGLE_SERVICE_ACCOUNT_EMAIL');
             const privateKey = this.configService.get<string>('GOOGLE_PRIVATE_KEY');
 
             if (clientEmail && privateKey) {
-                credentials = {
+                const credentials = {
                     client_email: clientEmail,
-                    private_key: privateKey,
+                    private_key: privateKey.replace(/\\n/g, '\n'),
                 };
+
+                auth = new google.auth.GoogleAuth({
+                    credentials,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                });
                 this.logger.log('Loaded Google Sheets credentials from Environment Variables');
             }
             // 2. Fallback to local file (Best for Local Dev)
             else {
-                try {
-                    // eslint-disable-next-line @typescript-eslint/no-require-imports
-                    const path = await import('path');
-                    const keyFilePath = path.join(process.cwd(), 'service-account.json');
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
+                const path = await import('path');
+                // Standard name expected in root or specific path
+                const keyFilePath = path.join(process.cwd(), 'service-account.json');
 
-                    // Check if file exists to avoid confusing error
-                    const fs = await import('fs');
-                    if (fs.existsSync(keyFilePath)) {
-                        // eslint-disable-next-line @typescript-eslint/no-require-imports
-                        credentials = require(keyFilePath);
-                        this.logger.log('Loaded Google Sheets credentials from service-account.json');
-                    }
-                } catch (err) {
-                    this.logger.warn('Could not load service-account.json', err);
+                const fs = await import('fs');
+                if (fs.existsSync(keyFilePath)) {
+                    auth = new google.auth.GoogleAuth({
+                        keyFile: keyFilePath,
+                        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                    });
+                    this.logger.log('Loaded Google Sheets credentials from local service-account.json file');
+                } else {
+                    this.logger.warn('service-account.json not found and Env Vars not set');
                 }
             }
 
-            if (!credentials) {
-                throw new Error('No Google Sheets credentials found (Checked Env Vars and service-account.json)');
+            if (!auth) {
+                throw new Error('No valid Google Sheets credentials found');
             }
-
-            // Fix private_key formatting issues (replace literal \n with actual newlines)
-            if (credentials.private_key) {
-                credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
-            }
-
-            const auth = new google.auth.GoogleAuth({
-                credentials,
-                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-            });
 
             this.sheetsClient = google.sheets({ version: 'v4', auth });
             this.spreadsheetId = this.configService.get<string>('GOOGLE_SHEET_ID') || '';
