@@ -14,11 +14,39 @@ export class DriveService {
 
     private async initializeDrive() {
         try {
-            const keyFile = this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
-            const auth = new google.auth.GoogleAuth({
-                keyFile,
-                scopes: ['https://www.googleapis.com/auth/drive.file'],
-            });
+            let auth;
+
+            // 1. Try loading from Environment Variables (Best for Render/Cloud)
+            const clientEmail = this.configService.get<string>('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+            const privateKey = this.configService.get<string>('GOOGLE_PRIVATE_KEY');
+
+            if (clientEmail && privateKey) {
+                const credentials = {
+                    client_email: clientEmail,
+                    private_key: privateKey.replace(/\\n/g, '\n'),
+                };
+
+                auth = new google.auth.GoogleAuth({
+                    credentials,
+                    scopes: ['https://www.googleapis.com/auth/drive.file'],
+                });
+                this.logger.log('Initialized Google Drive with Environment Variable credentials');
+            } else {
+                // 2. Fallback to keyFile path (Best for Local Dev if using file)
+                const keyFile = this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
+                if (keyFile) {
+                    auth = new google.auth.GoogleAuth({
+                        keyFile,
+                        scopes: ['https://www.googleapis.com/auth/drive.file'],
+                    });
+                    this.logger.log('Initialized Google Drive with keyFile path');
+                }
+            }
+
+            if (!auth) {
+                throw new Error('No Google Drive credentials found (Checked Env Vars and GOOGLE_APPLICATION_CREDENTIALS)');
+            }
+
             this.driveClient = google.drive({ version: 'v3', auth });
             this.logger.log('Google Drive client initialized');
         } catch (error) {
