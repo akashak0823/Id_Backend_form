@@ -21,8 +21,15 @@ class CreateEmployeeDto {
     contactAddress;
     permanentAddress;
     fatherName;
+    fatherAge;
     motherName;
+    motherAge;
     totalFamilyMembers;
+    maritalStatus;
+    spouseName;
+    spouseMaritalStatus;
+    spouseEmploymentStatus;
+    children;
     siblings;
     selectedSibling;
     department;
@@ -73,13 +80,46 @@ __decorate([
     __metadata("design:type", String)
 ], CreateEmployeeDto.prototype, "fatherName", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
+], CreateEmployeeDto.prototype, "fatherAge", void 0);
+__decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateEmployeeDto.prototype, "motherName", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
+], CreateEmployeeDto.prototype, "motherAge", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
 ], CreateEmployeeDto.prototype, "totalFamilyMembers", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateEmployeeDto.prototype, "maritalStatus", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateEmployeeDto.prototype, "spouseName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateEmployeeDto.prototype, "spouseMaritalStatus", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateEmployeeDto.prototype, "spouseEmploymentStatus", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], CreateEmployeeDto.prototype, "children", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),

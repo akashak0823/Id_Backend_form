@@ -29,11 +29,37 @@ export class CreateEmployeeDto {
     @IsString()
     fatherName: string;
 
+    @IsOptional()
+    fatherAge: number | string;
+
     @IsString()
     motherName: string;
 
     @IsOptional()
+    motherAge: number | string;
+
+    @IsOptional()
     totalFamilyMembers: number | string;
+
+    @IsOptional()
+    @IsString()
+    maritalStatus: string;
+
+    @IsOptional()
+    @IsString()
+    spouseName: string;
+
+    @IsOptional()
+    @IsString()
+    spouseMaritalStatus: string;
+
+    @IsOptional()
+    @IsString()
+    spouseEmploymentStatus: string;
+
+    @IsOptional()
+    @IsArray()
+    children: any[];
 
     @IsOptional()
     @IsArray()

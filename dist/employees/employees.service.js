@@ -33,7 +33,11 @@ let EmployeesService = class EmployeesService {
         const fileLinks = {};
         const uploadSingle = async (key) => {
             if (files[key] && files[key][0]) {
-                const url = await this.cloudinaryService.uploadFile(files[key][0]);
+                const file = files[key][0];
+                if (file.size === 0) {
+                    return '';
+                }
+                const url = await this.cloudinaryService.uploadFile(file);
                 fileLinks[`${key}Url`] = url;
                 return url;
             }
@@ -49,8 +53,10 @@ let EmployeesService = class EmployeesService {
         const eduCertUrls = [];
         if (files.educationalCertificates && files.educationalCertificates.length > 0) {
             for (const file of files.educationalCertificates) {
-                const url = await this.cloudinaryService.uploadFile(file);
-                eduCertUrls.push(url);
+                if (file.size > 0) {
+                    const url = await this.cloudinaryService.uploadFile(file);
+                    eduCertUrls.push(url);
+                }
             }
             fileLinks['educationalCertificatesUrl'] = eduCertUrls;
         }

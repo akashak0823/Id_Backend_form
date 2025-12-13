@@ -8,8 +8,15 @@ export declare class CreateEmployeeDto {
     contactAddress: string;
     permanentAddress: string;
     fatherName: string;
+    fatherAge: number | string;
     motherName: string;
+    motherAge: number | string;
     totalFamilyMembers: number | string;
+    maritalStatus: string;
+    spouseName: string;
+    spouseMaritalStatus: string;
+    spouseEmploymentStatus: string;
+    children: any[];
     siblings: any[];
     selectedSibling: string;
     department: string;
