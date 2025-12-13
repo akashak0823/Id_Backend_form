@@ -6,6 +6,7 @@ export declare class EmployeesService {
     private readonly sheetsService;
     constructor(cloudinaryService: CloudinaryService, sheetsService: SheetsService);
     private flattenSiblings;
+    private flattenChildren;
     create(dto: CreateEmployeeDto, files: {
         [key: string]: Express.Multer.File[];
     }): Promise<{

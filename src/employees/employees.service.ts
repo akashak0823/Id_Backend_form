@@ -25,6 +25,21 @@ export class EmployeesService {
         return result;
     }
 
+    // Helper to flatten children
+    private flattenChildren(children: any[]) {
+        const result: string[] = [];
+        if (Array.isArray(children)) {
+            children.forEach(c => {
+                result.push(
+                    c.name || "",
+                    c.gender || "",
+                    c.dob || ""
+                );
+            });
+        }
+        return result;
+    }
+
     async create(
         dto: CreateEmployeeDto,
         files: { [key: string]: Express.Multer.File[] }
@@ -80,15 +95,19 @@ export class EmployeesService {
         }
         const siblingCells = this.flattenSiblings(siblings || []);
 
+        // Flatten children
+        let children = dto.children;
+        if (typeof children === 'string') {
+            try {
+                children = JSON.parse(children);
+            } catch (e) {
+                children = [];
+            }
+        }
+        const childrenCells = this.flattenChildren(children || []);
+
         // Prepare row data as requested
         const row = [
-
-            // Timestamp (keeping it as it's useful, but placing at start if not forbidden)
-            // User prompt list started with fullName. I will strictly follow the list to avoid misalignment with headers if they changed them.
-            // Wait, if I change the columns, the user might need to update headers.
-            // The user explicitly listed the fields.
-            // [dto.fullName, dto.dob, ...]
-
             dto.fullName,
             dto.dob,
             dto.gender,
@@ -102,6 +121,9 @@ export class EmployeesService {
             dto.fatherName,
             dto.motherName,
             dto.totalFamilyMembers,
+            dto.spouseName || "",
+            dto.spouseEmploymentStatus || "",
+            ...childrenCells,
             dto.selectedSibling, // selectedSiblingName
             dto.contactAddress,
             dto.permanentAddress,

@@ -35,6 +35,13 @@ async function test() {
         accountNumber: "12345",
         ifscCode: "ABCD0001234",
         nomineeName: "Nominee",
+        maritalStatus: "Married",
+        spouseName: "Test Spouse",
+        spouseEmploymentStatus: "Employed",
+        children: JSON.stringify([
+            { name: "Child1", gender: "Male", dob: "2020-01-01" },
+            { name: "Child2", gender: "Female", dob: "2022-01-01" }
+        ]),
         siblings: JSON.stringify([
             { name: "Sib1", maritalStatus: "Single", employmentStatus: "Unemployed" }
         ])

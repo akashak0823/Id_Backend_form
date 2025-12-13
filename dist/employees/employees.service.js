@@ -29,6 +29,15 @@ let EmployeesService = class EmployeesService {
         }
         return result;
     }
+    flattenChildren(children) {
+        const result = [];
+        if (Array.isArray(children)) {
+            children.forEach(c => {
+                result.push(c.name || "", c.gender || "", c.dob || "");
+            });
+        }
+        return result;
+    }
     async create(dto, files) {
         const fileLinks = {};
         const uploadSingle = async (key) => {
@@ -72,6 +81,16 @@ let EmployeesService = class EmployeesService {
             }
         }
         const siblingCells = this.flattenSiblings(siblings || []);
+        let children = dto.children;
+        if (typeof children === 'string') {
+            try {
+                children = JSON.parse(children);
+            }
+            catch (e) {
+                children = [];
+            }
+        }
+        const childrenCells = this.flattenChildren(children || []);
         const row = [
             dto.fullName,
             dto.dob,
@@ -86,6 +105,9 @@ let EmployeesService = class EmployeesService {
             dto.fatherName,
             dto.motherName,
             dto.totalFamilyMembers,
+            dto.spouseName || "",
+            dto.spouseEmploymentStatus || "",
+            ...childrenCells,
             dto.selectedSibling,
             dto.contactAddress,
             dto.permanentAddress,
