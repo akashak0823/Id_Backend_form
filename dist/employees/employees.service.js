@@ -37,7 +37,9 @@ let EmployeesService = class EmployeesService {
                 if (file.size === 0) {
                     return '';
                 }
+                console.log(`Uploading ${key}...`);
                 const url = await this.cloudinaryService.uploadFile(file);
+                console.log(`Uploaded ${key}: ${url}`);
                 fileLinks[`${key}Url`] = url;
                 return url;
             }

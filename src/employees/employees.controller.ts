@@ -33,6 +33,7 @@ export class EmployeesController {
         },
         @Body('data') dataString: string,
     ) {
+        console.log('Received create employee request');
         if (!dataString) {
             throw new Error('Missing data field');
         }
@@ -40,10 +41,13 @@ export class EmployeesController {
         let createEmployeeDto: CreateEmployeeDto;
         try {
             createEmployeeDto = JSON.parse(dataString);
+            console.log('Parsed DTO:', createEmployeeDto);
         } catch (e) {
+            console.error('JSON Parse Error:', e);
             throw new Error('Invalid JSON in data field');
         }
 
+        console.log('Calling service...');
         return await this.employeesService.create(createEmployeeDto, files);
     }
 }
