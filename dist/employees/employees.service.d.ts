@@ -1,10 +1,10 @@
 import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { SupabaseService } from '../supabase/supabase.service';
 import { SheetsService } from '../sheets/sheets.service';
 export declare class EmployeesService {
-    private readonly cloudinaryService;
+    private readonly supabaseService;
     private readonly sheetsService;
-    constructor(cloudinaryService: CloudinaryService, sheetsService: SheetsService);
+    constructor(supabaseService: SupabaseService, sheetsService: SheetsService);
     private flattenSiblings;
     private flattenChildren;
     create(dto: CreateEmployeeDto, files: {

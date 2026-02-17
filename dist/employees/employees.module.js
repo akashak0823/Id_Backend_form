@@ -10,14 +10,14 @@ exports.EmployeesModule = void 0;
 const common_1 = require("@nestjs/common");
 const employees_service_1 = require("./employees.service");
 const employees_controller_1 = require("./employees.controller");
-const cloudinary_module_1 = require("../cloudinary/cloudinary.module");
+const supabase_module_1 = require("../supabase/supabase.module");
 const sheets_service_1 = require("../sheets/sheets.service");
 let EmployeesModule = class EmployeesModule {
 };
 exports.EmployeesModule = EmployeesModule;
 exports.EmployeesModule = EmployeesModule = __decorate([
     (0, common_1.Module)({
-        imports: [cloudinary_module_1.CloudinaryModule],
+        imports: [supabase_module_1.SupabaseModule],
         controllers: [employees_controller_1.EmployeesController],
         providers: [employees_service_1.EmployeesService, sheets_service_1.SheetsService],
     })

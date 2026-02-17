@@ -1,12 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { SupabaseService } from '../supabase/supabase.service';
 import { SheetsService } from '../sheets/sheets.service';
 
 @Injectable()
 export class EmployeesService {
     constructor(
-        private readonly cloudinaryService: CloudinaryService,
+        private readonly supabaseService: SupabaseService,
         private readonly sheetsService: SheetsService,
     ) { }
 
@@ -54,7 +54,7 @@ export class EmployeesService {
                     return '';
                 }
                 console.log(`Uploading ${key}...`);
-                const url = await this.cloudinaryService.uploadFile(file);
+                const url = await this.supabaseService.uploadFile(file);
                 console.log(`Uploaded ${key}: ${url}`);
                 fileLinks[`${key}Url`] = url;
                 return url;
@@ -76,7 +76,7 @@ export class EmployeesService {
         if (files.educationalCertificates && files.educationalCertificates.length > 0) {
             for (const file of files.educationalCertificates) {
                 if (file.size > 0) {
-                    const url = await this.cloudinaryService.uploadFile(file);
+                    const url = await this.supabaseService.uploadFile(file);
                     eduCertUrls.push(url);
                 }
             }

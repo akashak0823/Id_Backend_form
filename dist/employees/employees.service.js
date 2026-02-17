@@ -11,13 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmployeesService = void 0;
 const common_1 = require("@nestjs/common");
-const cloudinary_service_1 = require("../cloudinary/cloudinary.service");
+const supabase_service_1 = require("../supabase/supabase.service");
 const sheets_service_1 = require("../sheets/sheets.service");
 let EmployeesService = class EmployeesService {
-    cloudinaryService;
+    supabaseService;
     sheetsService;
-    constructor(cloudinaryService, sheetsService) {
-        this.cloudinaryService = cloudinaryService;
+    constructor(supabaseService, sheetsService) {
+        this.supabaseService = supabaseService;
         this.sheetsService = sheetsService;
     }
     flattenSiblings(siblings) {
@@ -47,7 +47,7 @@ let EmployeesService = class EmployeesService {
                     return '';
                 }
                 console.log(`Uploading ${key}...`);
-                const url = await this.cloudinaryService.uploadFile(file);
+                const url = await this.supabaseService.uploadFile(file);
                 console.log(`Uploaded ${key}: ${url}`);
                 fileLinks[`${key}Url`] = url;
                 return url;
@@ -65,7 +65,7 @@ let EmployeesService = class EmployeesService {
         if (files.educationalCertificates && files.educationalCertificates.length > 0) {
             for (const file of files.educationalCertificates) {
                 if (file.size > 0) {
-                    const url = await this.cloudinaryService.uploadFile(file);
+                    const url = await this.supabaseService.uploadFile(file);
                     eduCertUrls.push(url);
                 }
             }
@@ -135,7 +135,7 @@ let EmployeesService = class EmployeesService {
 exports.EmployeesService = EmployeesService;
 exports.EmployeesService = EmployeesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [cloudinary_service_1.CloudinaryService,
+    __metadata("design:paramtypes", [supabase_service_1.SupabaseService,
         sheets_service_1.SheetsService])
 ], EmployeesService);
 //# sourceMappingURL=employees.service.js.map

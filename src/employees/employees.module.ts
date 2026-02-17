@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { EmployeesController } from './employees.controller';
-import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { SupabaseModule } from '../supabase/supabase.module';
 import { SheetsService } from '../sheets/sheets.service';
 
 @Module({
-    imports: [CloudinaryModule],
+    imports: [SupabaseModule],
     controllers: [EmployeesController],
     providers: [EmployeesService, SheetsService],
 })
