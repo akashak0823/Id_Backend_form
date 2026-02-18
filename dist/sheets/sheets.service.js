@@ -67,6 +67,75 @@ let SheetsService = SheetsService_1 = class SheetsService {
             this.logger.error('Failed to initialize Google Sheets client', error);
         }
     }
+    async getSheetId() {
+        try {
+            const metadata = await this.sheetsClient.spreadsheets.get({ spreadsheetId: this.spreadsheetId });
+            const sheet = metadata.data.sheets.find((s) => s.properties.title === this.tabName);
+            return sheet ? sheet.properties.sheetId : null;
+        }
+        catch (error) {
+            this.logger.warn('Failed to fetch sheet metadata', error);
+            return null;
+        }
+    }
+    async setHeaders(headers) {
+        if (!this.sheetsClient)
+            return;
+        try {
+            const range = `${this.tabName}!A1:A1`;
+            const response = await this.sheetsClient.spreadsheets.values.get({
+                spreadsheetId: this.spreadsheetId,
+                range: range,
+            });
+            const values = response.data.values;
+            const firstCell = values && values[0] ? values[0][0] : null;
+            if (!firstCell) {
+                this.logger.log('Sheet is empty, writing headers...');
+                await this.sheetsClient.spreadsheets.values.append({
+                    spreadsheetId: this.spreadsheetId,
+                    range: `${this.tabName}!A1`,
+                    valueInputOption: 'RAW',
+                    requestBody: { values: [headers] },
+                });
+                return;
+            }
+            if (firstCell !== headers[0]) {
+                this.logger.log(`Headers missing (A1 is "${firstCell}"), inserting header row...`);
+                const sheetId = await this.getSheetId();
+                if (sheetId !== null) {
+                    await this.sheetsClient.spreadsheets.batchUpdate({
+                        spreadsheetId: this.spreadsheetId,
+                        requestBody: {
+                            requests: [{
+                                    insertDimension: {
+                                        range: {
+                                            sheetId: sheetId,
+                                            dimension: 'ROWS',
+                                            startIndex: 0,
+                                            endIndex: 1
+                                        },
+                                        inheritFromBefore: false
+                                    }
+                                }]
+                        }
+                    });
+                    await this.sheetsClient.spreadsheets.values.update({
+                        spreadsheetId: this.spreadsheetId,
+                        range: `${this.tabName}!A1`,
+                        valueInputOption: 'RAW',
+                        requestBody: { values: [headers] },
+                    });
+                    this.logger.log('Inserted and wrote headers.');
+                }
+            }
+            else {
+                this.logger.log('Headers already exist.');
+            }
+        }
+        catch (error) {
+            this.logger.warn('Failed to ensure headers checking', error);
+        }
+    }
     async appendRow(rowData) {
         if (!this.sheetsClient) {
             throw new Error('Google Sheets client not initialized');

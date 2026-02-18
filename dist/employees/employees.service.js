@@ -20,24 +20,6 @@ let EmployeesService = class EmployeesService {
         this.supabaseService = supabaseService;
         this.sheetsService = sheetsService;
     }
-    flattenSiblings(siblings) {
-        const result = [];
-        if (Array.isArray(siblings)) {
-            siblings.forEach(s => {
-                result.push(s.name || "", s.maritalStatus || "", s.employmentStatus || "");
-            });
-        }
-        return result;
-    }
-    flattenChildren(children) {
-        const result = [];
-        if (Array.isArray(children)) {
-            children.forEach(c => {
-                result.push(c.name || "", c.gender || "", c.dob || "");
-            });
-        }
-        return result;
-    }
     async create(dto, files) {
         const fileLinks = {};
         const uploadSingle = async (key) => {
@@ -54,6 +36,25 @@ let EmployeesService = class EmployeesService {
             }
             return '';
         };
+        const siblingHeaders = [];
+        for (let i = 1; i <= 5; i++) {
+            siblingHeaders.push(`Sibling ${i} Name`, `Sibling ${i} Marital Status`, `Sibling ${i} Employment Status`);
+        }
+        const childHeaders = [];
+        for (let i = 1; i <= 5; i++) {
+            childHeaders.push(`Child ${i} Name`, `Child ${i} Gender`, `Child ${i} DOB`);
+        }
+        const SHEET_HEADERS = [
+            "Full Name", "Date of Birth", "Gender", "Contact Number", "Emergency Contact Number", "Email ID",
+            "Department", "Designation", "Joining Date", "Blood Group", "Father Name", "Mother Name",
+            "Total Family Members", "Spouse Name", "Spouse Employment Status", "Nominee Name",
+            "Contact Address", "Permanent Address", "Bank Name", "Bank Account Number", "IFSC Code",
+            "Photo", "Aadhaar Card", "PAN", "Birth Certificate", "Community Certificate",
+            "Income Certificate", "Nativity Certificate", "Educational Certificates", "Selected Sibling",
+            ...siblingHeaders,
+            ...childHeaders
+        ];
+        await this.sheetsService.setHeaders(SHEET_HEADERS);
         const photoUrl = await uploadSingle('photo');
         const aadhaarUrl = await uploadSingle('aadhaar');
         const panUrl = await uploadSingle('pan');
@@ -71,6 +72,7 @@ let EmployeesService = class EmployeesService {
             }
             fileLinks['educationalCertificatesUrl'] = eduCertUrls;
         }
+        const eduCertsString = eduCertUrls.join(',\n');
         let siblings = dto.siblings;
         if (typeof siblings === 'string') {
             try {
@@ -80,7 +82,12 @@ let EmployeesService = class EmployeesService {
                 siblings = [];
             }
         }
-        const siblingCells = this.flattenSiblings(siblings || []);
+        const siblingData = Array.isArray(siblings) ? siblings : [];
+        const siblingCells = [];
+        for (let i = 0; i < 5; i++) {
+            const s = siblingData[i] || {};
+            siblingCells.push(s.name || "", s.maritalStatus || "", s.employmentStatus || "");
+        }
         let children = dto.children;
         if (typeof children === 'string') {
             try {
@@ -90,7 +97,12 @@ let EmployeesService = class EmployeesService {
                 children = [];
             }
         }
-        const childrenCells = this.flattenChildren(children || []);
+        const childData = Array.isArray(children) ? children : [];
+        const childCells = [];
+        for (let i = 0; i < 5; i++) {
+            const c = childData[i] || {};
+            childCells.push(c.name || "", c.gender || "", c.dob || "");
+        }
         const row = [
             dto.fullName,
             dto.dob,
@@ -107,14 +119,12 @@ let EmployeesService = class EmployeesService {
             dto.totalFamilyMembers,
             dto.spouseName || "",
             dto.spouseEmploymentStatus || "",
-            ...childrenCells,
-            dto.selectedSibling,
+            dto.nomineeName,
             dto.contactAddress,
             dto.permanentAddress,
             dto.bankName,
             dto.accountNumber,
             dto.ifscCode,
-            dto.nomineeName,
             photoUrl,
             aadhaarUrl,
             panUrl,
@@ -122,8 +132,10 @@ let EmployeesService = class EmployeesService {
             communityCertificateUrl,
             incomeCertificateUrl,
             nativityCertificateUrl,
-            ...eduCertUrls,
-            ...siblingCells
+            eduCertsString,
+            dto.selectedSibling,
+            ...siblingCells,
+            ...childCells
         ];
         await this.sheetsService.appendRow(row);
         return {

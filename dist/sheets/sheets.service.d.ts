@@ -7,5 +7,7 @@ export declare class SheetsService {
     private tabName;
     constructor(configService: ConfigService);
     private initializeSheets;
+    private getSheetId;
+    setHeaders(headers: string[]): Promise<void>;
     appendRow(rowData: any[]): Promise<number>;
 }

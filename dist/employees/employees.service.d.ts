@@ -5,8 +5,6 @@ export declare class EmployeesService {
     private readonly supabaseService;
     private readonly sheetsService;
     constructor(supabaseService: SupabaseService, sheetsService: SheetsService);
-    private flattenSiblings;
-    private flattenChildren;
     create(dto: CreateEmployeeDto, files: {
         [key: string]: Express.Multer.File[];
     }): Promise<{

@@ -1,0 +1,4 @@
+{
+  "stack": "Error: No credentials found\n    at main (E:\\Id_form\\backend\\debug_sheet_split.js:112:26)\n    at Object.<anonymous> (E:\\Id_form\\backend\\debug_sheet_split.js:137:1)\n    at Module._compile (node:internal/modules/cjs/loader:1761:14)\n    at Object..js (node:internal/modules/cjs/loader:1893:10)\n    at Module.load (node:internal/modules/cjs/loader:1481:32)\n    at Module._load (node:internal/modules/cjs/loader:1300:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47",
+  "message": "No credentials found"
+}

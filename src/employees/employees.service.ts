@@ -10,35 +10,7 @@ export class EmployeesService {
         private readonly sheetsService: SheetsService,
     ) { }
 
-    // Helper to flatten siblings
-    private flattenSiblings(siblings: any[]) {
-        const result: string[] = [];
-        if (Array.isArray(siblings)) {
-            siblings.forEach(s => {
-                result.push(
-                    s.name || "",
-                    s.maritalStatus || "",
-                    s.employmentStatus || ""
-                );
-            });
-        }
-        return result;
-    }
 
-    // Helper to flatten children
-    private flattenChildren(children: any[]) {
-        const result: string[] = [];
-        if (Array.isArray(children)) {
-            children.forEach(c => {
-                result.push(
-                    c.name || "",
-                    c.gender || "",
-                    c.dob || ""
-                );
-            });
-        }
-        return result;
-    }
 
     async create(
         dto: CreateEmployeeDto,
@@ -62,6 +34,30 @@ export class EmployeesService {
             return '';
         };
 
+        // Define headers with expanded columns for Siblings (5 max) and Children (5 max)
+        const siblingHeaders: string[] = [];
+        for (let i = 1; i <= 5; i++) {
+            siblingHeaders.push(`Sibling ${i} Name`, `Sibling ${i} Marital Status`, `Sibling ${i} Employment Status`);
+        }
+        const childHeaders: string[] = [];
+        for (let i = 1; i <= 5; i++) {
+            childHeaders.push(`Child ${i} Name`, `Child ${i} Gender`, `Child ${i} DOB`);
+        }
+
+        const SHEET_HEADERS = [
+            "Full Name", "Date of Birth", "Gender", "Contact Number", "Emergency Contact Number", "Email ID",
+            "Department", "Designation", "Joining Date", "Blood Group", "Father Name", "Mother Name",
+            "Total Family Members", "Spouse Name", "Spouse Employment Status", "Nominee Name",
+            "Contact Address", "Permanent Address", "Bank Name", "Bank Account Number", "IFSC Code",
+            "Photo", "Aadhaar Card", "PAN", "Birth Certificate", "Community Certificate",
+            "Income Certificate", "Nativity Certificate", "Educational Certificates", "Selected Sibling",
+            ...siblingHeaders,
+            ...childHeaders
+        ];
+
+        // Ensure headers exist
+        await this.sheetsService.setHeaders(SHEET_HEADERS);
+
         // Upload files
         const photoUrl = await uploadSingle('photo');
         const aadhaarUrl = await uploadSingle('aadhaar');
@@ -71,7 +67,7 @@ export class EmployeesService {
         const incomeCertificateUrl = await uploadSingle('incomeCertificate');
         const nativityCertificateUrl = await uploadSingle('nativityCertificate');
 
-        // Upload multiple educational certificates
+        // Upload multiple educational certificates and join URLs
         const eduCertUrls: string[] = [];
         if (files.educationalCertificates && files.educationalCertificates.length > 0) {
             for (const file of files.educationalCertificates) {
@@ -82,37 +78,39 @@ export class EmployeesService {
             }
             fileLinks['educationalCertificatesUrl'] = eduCertUrls;
         }
+        const eduCertsString = eduCertUrls.join(',\n');
 
-        // Flatten siblings
-        // Check if siblings is a string (JSON) or object
+        // Parse Siblings
         let siblings = dto.siblings;
         if (typeof siblings === 'string') {
-            try {
-                siblings = JSON.parse(siblings);
-            } catch (e) {
-                siblings = [];
-            }
+            try { siblings = JSON.parse(siblings); } catch (e) { siblings = []; }
         }
-        const siblingCells = this.flattenSiblings(siblings || []);
+        const siblingData = Array.isArray(siblings) ? siblings : [];
+        const siblingCells: string[] = [];
+        for (let i = 0; i < 5; i++) {
+            const s = siblingData[i] || {};
+            siblingCells.push(s.name || "", s.maritalStatus || "", s.employmentStatus || "");
+        }
 
-        // Flatten children
+        // Parse Children
         let children = dto.children;
         if (typeof children === 'string') {
-            try {
-                children = JSON.parse(children);
-            } catch (e) {
-                children = [];
-            }
+            try { children = JSON.parse(children); } catch (e) { children = []; }
         }
-        const childrenCells = this.flattenChildren(children || []);
+        const childData = Array.isArray(children) ? children : [];
+        const childCells: string[] = [];
+        for (let i = 0; i < 5; i++) {
+            const c = childData[i] || {};
+            childCells.push(c.name || "", c.gender || "", c.dob || "");
+        }
 
-        // Prepare row data as requested
+        // Prepare row data aligned with headers
         const row = [
             dto.fullName,
             dto.dob,
             dto.gender,
-            dto.contactNumber, // phone
-            dto.emergencyContact, // emergencyPhone
+            dto.contactNumber,
+            dto.emergencyContact,
             dto.email,
             dto.department,
             dto.designation,
@@ -123,14 +121,12 @@ export class EmployeesService {
             dto.totalFamilyMembers,
             dto.spouseName || "",
             dto.spouseEmploymentStatus || "",
-            ...childrenCells,
-            dto.selectedSibling, // selectedSiblingName
+            dto.nomineeName,
             dto.contactAddress,
             dto.permanentAddress,
             dto.bankName,
             dto.accountNumber,
             dto.ifscCode,
-            dto.nomineeName,
             photoUrl,
             aadhaarUrl,
             panUrl,
@@ -138,8 +134,10 @@ export class EmployeesService {
             communityCertificateUrl,
             incomeCertificateUrl,
             nativityCertificateUrl,
-            ...eduCertUrls,    // Flattened education cert URLs
-            ...siblingCells    // Flattened siblings
+            eduCertsString,
+            dto.selectedSibling,
+            ...siblingCells,
+            ...childCells
         ];
 
         await this.sheetsService.appendRow(row);
