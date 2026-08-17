@@ -32,26 +32,41 @@ export class EmployeesService {
             return '';
         };
 
-        // Upload files
-        const photoUrl = await uploadSingle('photo');
-        const aadhaarUrl = await uploadSingle('aadhaar');
-        const panUrl = await uploadSingle('pan');
-        const birthCertificateUrl = await uploadSingle('birthCertificate');
-        const communityCertificateUrl = await uploadSingle('communityCertificate');
-        const incomeCertificateUrl = await uploadSingle('incomeCertificate');
-        const nativityCertificateUrl = await uploadSingle('nativityCertificate');
-
-        // Upload multiple educational certificates
-        const eduCertUrls: string[] = [];
-        if (files.educationalCertificates && files.educationalCertificates.length > 0) {
-            for (const file of files.educationalCertificates) {
-                if (file.size > 0) {
-                    const url = await this.supabaseService.uploadFile(file, file.originalname);
-                    eduCertUrls.push(url);
-                }
+        // Helper to upload multiple educational certificates
+        const uploadEduCerts = async () => {
+            const urls: string[] = [];
+            if (files.educationalCertificates && files.educationalCertificates.length > 0) {
+                const uploadPromises = files.educationalCertificates
+                    .filter(file => file.size > 0)
+                    .map(file => this.supabaseService.uploadFile(file, file.originalname));
+                
+                const results = await Promise.all(uploadPromises);
+                urls.push(...results);
+                fileLinks['educationalCertificatesUrl'] = urls;
             }
-            fileLinks['educationalCertificatesUrl'] = eduCertUrls;
-        }
+            return urls;
+        };
+
+        // Upload all files in parallel
+        const [
+            photoUrl,
+            aadhaarUrl,
+            panUrl,
+            birthCertificateUrl,
+            communityCertificateUrl,
+            incomeCertificateUrl,
+            nativityCertificateUrl,
+            eduCertUrls
+        ] = await Promise.all([
+            uploadSingle('photo'),
+            uploadSingle('aadhaar'),
+            uploadSingle('pan'),
+            uploadSingle('birthCertificate'),
+            uploadSingle('communityCertificate'),
+            uploadSingle('incomeCertificate'),
+            uploadSingle('nativityCertificate'),
+            uploadEduCerts()
+        ]);
 
         // Sibling variable cleanup
         let siblings = dto.siblings;
