@@ -16,6 +16,7 @@ export class EmployeesService {
         dto: CreateEmployeeDto,
         files: { [key: string]: Express.Multer.File[] }
     ) {
+        files = files || {};
         const fileLinks: any = {};
 
         // Helper to upload single file
@@ -47,26 +48,33 @@ export class EmployeesService {
             return urls;
         };
 
-        // Upload all files in parallel
-        const [
-            photoUrl,
-            aadhaarUrl,
-            panUrl,
-            birthCertificateUrl,
-            communityCertificateUrl,
-            incomeCertificateUrl,
-            nativityCertificateUrl,
-            eduCertUrls
-        ] = await Promise.all([
-            uploadSingle('photo'),
-            uploadSingle('aadhaar'),
-            uploadSingle('pan'),
-            uploadSingle('birthCertificate'),
-            uploadSingle('communityCertificate'),
-            uploadSingle('incomeCertificate'),
-            uploadSingle('nativityCertificate'),
-            uploadEduCerts()
-        ]);
+        let photoUrl = '', aadhaarUrl = '', panUrl = '', birthCertificateUrl = '', communityCertificateUrl = '', incomeCertificateUrl = '', nativityCertificateUrl = '', eduCertUrls: string[] = [];
+
+        try {
+            // Upload all files in parallel
+            [
+                photoUrl,
+                aadhaarUrl,
+                panUrl,
+                birthCertificateUrl,
+                communityCertificateUrl,
+                incomeCertificateUrl,
+                nativityCertificateUrl,
+                eduCertUrls
+            ] = await Promise.all([
+                uploadSingle('photo'),
+                uploadSingle('aadhaar'),
+                uploadSingle('pan'),
+                uploadSingle('birthCertificate'),
+                uploadSingle('communityCertificate'),
+                uploadSingle('incomeCertificate'),
+                uploadSingle('nativityCertificate'),
+                uploadEduCerts()
+            ]);
+        } catch (e: any) {
+            require('fs').appendFileSync('e:\\Akash\\Web_project\\Artibots\\ID_Form\\backend\\error.log', new Date().toISOString() + ' - File Upload Error: ' + (e.stack || e.message) + '\n');
+            throw e;
+        }
 
         // Sibling variable cleanup
         let siblings = dto.siblings;
