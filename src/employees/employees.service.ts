@@ -51,29 +51,29 @@ export class EmployeesService {
         let photoUrl = '', aadhaarUrl = '', panUrl = '', birthCertificateUrl = '', communityCertificateUrl = '', incomeCertificateUrl = '', nativityCertificateUrl = '', eduCertUrls: string[] = [];
 
         try {
-            // Upload all files in parallel
-            [
-                photoUrl,
-                aadhaarUrl,
-                panUrl,
-                birthCertificateUrl,
-                communityCertificateUrl,
-                incomeCertificateUrl,
-                nativityCertificateUrl,
-                eduCertUrls
-            ] = await Promise.all([
+            // Batch 1: Upload first 3 files
+            [photoUrl, aadhaarUrl, panUrl] = await Promise.all([
                 uploadSingle('photo'),
                 uploadSingle('aadhaar'),
-                uploadSingle('pan'),
+                uploadSingle('pan')
+            ]);
+
+            // Batch 2: Upload next 3 files
+            [birthCertificateUrl, communityCertificateUrl, incomeCertificateUrl] = await Promise.all([
                 uploadSingle('birthCertificate'),
                 uploadSingle('communityCertificate'),
-                uploadSingle('incomeCertificate'),
+                uploadSingle('incomeCertificate')
+            ]);
+
+            // Batch 3: Upload remaining files
+            [nativityCertificateUrl, eduCertUrls] = await Promise.all([
                 uploadSingle('nativityCertificate'),
                 uploadEduCerts()
             ]);
+            
         } catch (e: any) {
-            require('fs').appendFileSync('e:\\Akash\\Web_project\\Artibots\\ID_Form\\backend\\error.log', new Date().toISOString() + ' - File Upload Error: ' + (e.stack || e.message) + '\n');
-            throw e;
+            console.error('File Upload Error:', e);
+            throw new InternalServerErrorException('Error uploading files to storage. Please try again.');
         }
 
         // Sibling variable cleanup
